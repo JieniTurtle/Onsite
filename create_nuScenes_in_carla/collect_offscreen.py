@@ -15,7 +15,6 @@ try:
 except IndexError:
     pass
 import carla
-import pygame
 import numpy as np
 import cv2
 import json
@@ -275,7 +274,7 @@ class Env_Manager:
                 logging.warning(f"Route generation stopped at distance {accumulated_distance}m, no further waypoints.")
                 break
 
-        logging.info(f"Generated a route with {len(global_plan)} waypoints, total distance ~{accumulated_distance}m from player's starting location.")
+        # logging.info(f"Generated a route with {len(global_plan)} waypoints, total distance ~{accumulated_distance}m from player's starting location.")
         return global_plan
 
     def get_target_commands(self, location, compass):
@@ -1529,8 +1528,6 @@ class Env_Manager:
                     # Save as JPG
                     img_filename = self.camera_path / cam_type / f'{frame_str}.jpg'
                     cv2.imwrite(str(img_filename), img)
-                    
-        '''
                 elif 'depth' in cam_type or 'instance' in cam_type or 'semantic' in cam_type:
                     # Save depth images as PNG
                     img_filename = self.camera_path / cam_type / f'{frame_str}.png'
@@ -1568,7 +1565,6 @@ class Env_Manager:
             las.y = lidar_data[:,1]
             las.z = lidar_data[:,2]
             las.write(str(lidar_filename))
-        '''
         
         self.count += 1
 
@@ -1625,8 +1621,9 @@ def load_destination_from_json(filepath):
     return carla.Location(x=data["x"], y=data["y"], z=data["z"])
 
 def game_loop(args):
-    pygame.init()
-    pygame.font.init()
+    # pygame.init()
+    # pygame.font.init()
+
     world = None
     env_manager = None
     player = None
@@ -1669,22 +1666,18 @@ def game_loop(args):
 
         # Get the ego vehicle
         player = None
-        while player is None:
+        attempts = 0
+        max_attempts = 10
+        while player is None and attempts < max_attempts:
             print("Waiting for the ego vehicle...")
             time.sleep(1)
             possible_vehicles = sim_world.get_actors().filter('vehicle.*')
             for vehicle in possible_vehicles:
                 if 'role_name' in vehicle.attributes and vehicle.attributes['role_name'] == 'hero':
                     print(f"Ego vehicle found - ID: {vehicle.id}, Type: {vehicle.type_id}")
-                    print(f"  Is alive: {vehicle.is_alive}")
-                    print(f"  Has autopilot method: {hasattr(vehicle, 'get_autopilot')}")
-                    print(f"  Has set_autopilot method: {hasattr(vehicle, 'set_autopilot')}")
-                    
-                    # 检查车辆控制状态
-                    print(f"  Can be controlled: {hasattr(vehicle, 'get_control')}")
-                    
                     player = vehicle
                     break
+            attempts += 1
 
         if player:
             if args.agent == "Basic":
@@ -1713,30 +1706,27 @@ def game_loop(args):
         if traffic_manager:
             traffic_manager.vehicle_percentage_speed_difference(player, 0.0)  # Ego maintains its speed
 
+        print("Ego vehicle is set and agent destination assigned.")
         # Initialize environment manager
         env_manager = Env_Manager(sim_world, player, save_path='scenario_name')
+        print("Environment manager initialized.")
 
         # Initialize Pygame display window (optional)
-        display_width, display_height = args.width, args.height
-        display = pygame.display.set_mode((display_width, display_height), pygame.HWSURFACE | pygame.DOUBLEBUF)
-        pygame.display.set_caption("CARLA Data Collection")
+        # display_width, display_height = args.width, args.height
+        # display = pygame.display.set_mode((display_width, display_height), pygame.HWSURFACE | pygame.DOUBLEBUF)
+        # pygame.display.set_caption("CARLA Data Collection")
 
-        clock = pygame.time.Clock()
-        max_frames = args.max_frames  # Maximum frames to collect
+        # clock = pygame.time.Clock()
+        # max_frames = args.max_frames  # Maximum frames to collect
 
         frame_counter = 0
+        max_frames = args.max_frames
 
         while True:
-            clock.tick_busy_loop(60)  # Control frame rate
-
+            print("check")
             if agent.done():
                 print("The target has been reached, stopping the simulation")
                 break
-
-            # Handle Pygame events
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    raise KeyboardInterrupt()
 
             # Advance the simulation
             if args.sync:
@@ -1749,7 +1739,9 @@ def game_loop(args):
             player.apply_control(control)
 
             # Process sensor data
+            print(f"Processing sensor data...")
             results = env_manager.tick()
+            print(f"Sensor data processed for frame {frame_counter}")
             if results:
                 # Save current frame's data
                 frame_counter += 1
@@ -1782,24 +1774,24 @@ def game_loop(args):
                 speed = annotation['speed']
                 print(f"Frame {frame_counter}: Location - x: {annotation['x']:.2f}, y: {annotation['y']:.2f}, theta: {annotation['theta']:.2f}; Speed: {speed:.2f} km/h")
 
-                # 渲染前置RGB相机图像到Pygame窗口
-                cam_front = results['camera_data'].get('rgb_front', None)
-                if cam_front is not None:
-                    if cam_front.dtype != np.uint8:
-                        cam_front = np.clip(cam_front, 0, 255).astype(np.uint8)
-                    if cam_front.shape[2] != 3:
-                        print(f"Frame {frame_counter}: Unexpected number of channels in CAM_FRONT: {cam_front.shape[2]}")
-                        continue
-                    img = cv2.resize(cam_front, (display_width, display_height))
-                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                    try:
-                        surface = pygame.surfarray.make_surface(img.swapaxes(0, 1))
-                        display.blit(surface, (0, 0))
-                        pygame.display.flip()
-                    except Exception as e:
-                        print(f"Frame {frame_counter}: Error rendering image: {e}")
-                else:
-                    print(f"Frame {frame_counter}: No CAM_FRONT data to render.")
+                # # 渲染前置RGB相机图像到Pygame窗口
+                # cam_front = results['camera_data'].get('rgb_front', None)
+                # if cam_front is not None:
+                #     if cam_front.dtype != np.uint8:
+                #         cam_front = np.clip(cam_front, 0, 255).astype(np.uint8)
+                #     if cam_front.shape[2] != 3:
+                #         print(f"Frame {frame_counter}: Unexpected number of channels in CAM_FRONT: {cam_front.shape[2]}")
+                #         continue
+                #     img = cv2.resize(cam_front, (display_width, display_height))
+                #     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                #     try:
+                #         surface = pygame.surfarray.make_surface(img.swapaxes(0, 1))
+                #         display.blit(surface, (0, 0))
+                #         pygame.display.flip()
+                #     except Exception as e:
+                #         print(f"Frame {frame_counter}: Error rendering image: {e}")
+                # else:
+                #     print(f"Frame {frame_counter}: No CAM_FRONT data to render.")
 
             # Check if maximum frame count is reached
             if frame_counter >= max_frames:
@@ -1823,7 +1815,7 @@ def game_loop(args):
         # if player is not None:
         #     player.destroy()
 
-        pygame.quit()
+        # pygame.quit()
 
 def main():
     """Main method"""
