@@ -1,0 +1,9 @@
+carla==0.9.15
+certifi @ file:///croot/certifi_1671487769961/work/certifi
+h5py==3.8.0
+laspy==2.5.0
+networkx==2.6.3
+numpy==1.21.6
+opencv-python==4.12.0.88
+pygame==2.6.1
+shapely==2.0.7
