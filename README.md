@@ -42,3 +42,8 @@ python collect.py --sync --res 1600x900 -d destination.json
 # 如果要在无GUI的服务器上运行，替换为
 python collect_offscreen.py --sync -d destination.json
 ```
+4. 训练过程
+```
+按照Bench2DriveZoo的uniad训练流程，链接如下
+https://github.com/Thinklab-SJTU/Bench2DriveZoo/blob/uniad/vad/docs/TRAIN_EVAL.md
+```
