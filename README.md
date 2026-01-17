@@ -46,4 +46,6 @@ python collect_offscreen.py --sync -d destination.json
 ```
 按照Bench2DriveZoo的uniad训练流程，链接如下
 https://github.com/Thinklab-SJTU/Bench2DriveZoo/blob/uniad/vad/docs/TRAIN_EVAL.md
+
+该文件夹下的执行脚本是docker-monitor/main-zyd.sh
 ```
