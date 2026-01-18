@@ -52,7 +52,7 @@ https://github.com/Thinklab-SJTU/Bench2DriveZoo/blob/uniad/vad/docs/TRAIN_EVAL.m
 
 # 监控
 ## 监控脚本
-**资源监控逻辑脚本**
+**资源监控逻辑脚本**    
 monitor_resources.sh
 
 **渲染资源监控脚本**  
@@ -74,7 +74,7 @@ nohup bash -c 'cd ~/autodl-tmp/docker-monitor && bash ./monitor_train.sh train_0
 ```
 
 ## 监控逻辑解释
-CPU和内存监控是依靠autodl容器的cgroup，GPU监控依赖于英伟达官方的nvidia-smi命令。
+CPU和内存监控是依靠autodl容器的cgroup，GPU监控依赖于英伟达官方的nvidia-smi命令。    
 CPU监控的是CPU使用总量(末状态-初状态就可以得到过程CPU使用量)，内存读取的是实时占用内存量。GPU监控的是实时GPU使用率。
 结果csv文件输出例子为：
 ```
