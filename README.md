@@ -49,3 +49,28 @@ https://github.com/Thinklab-SJTU/Bench2DriveZoo/blob/uniad/vad/docs/TRAIN_EVAL.m
 
 该文件夹下的执行脚本是docker-monitor/main-zyd.sh
 ```
+# 监控脚本
+**资源监控逻辑脚本**
+monitor_resources.sh
+**渲染资源监控脚本**
+monitor_render.sh
+**训练资源监控脚本**
+main-zyd.sh
+# 监控命令行
+**渲染及其资源监控命令行**
+nohup bash -c 'cd /root/autodl-tmp/docker-monitor && bash ./monitor_render.sh 1 render_1' > /dev/null 2>&1 &
+**训练及其资源监控命令行**
+nohup bash -c 'cd ~/autodl-tmp/docker-monitor && bash ./monitor_train.sh train_01' > /dev/null 2>&1 &
+# 监控逻辑解释
+CPU和内存监控是依靠autodl容器的cgroup，GPU监控依赖于英伟达官方的nvidia-smi命令。
+CPU监控的是CPU使用总量(末状态-初状态就可以得到过程CPU使用量)，内存读取的是实时占用内存量。GPU监控的是实时GPU使用率。
+结果输出例子为：
+```
+timestamp,training_time_seconds,cpu_usage_total_seconds,gpu_utilization_total(%),gpu_memory_total_mb,memory_usage_total_mb
+2026-01-06 16:12:03,2,389.6200,0.0,1,78649
+2026-01-06 16:12:06,5,813.1600,0.0,330,78964
+2026-01-06 16:12:08,7,1236.4100,12.0,686,80991
+2026-01-06 16:12:10,9,1660.3000,8.0,1673,83602
+```
+# 监控逻辑不足及适配性分析
+上面的监控逻辑是在autodl算力服务器上的，还没有在自己创的docker容器中跑过。据了解，虽然autodl本质是容器，但是上面的代码逻辑直接在docker容器上可能跑不了。主要原因是因为现在docker容器多使用Cgroup v2，上面脚本主要使用的是autodl中的Cgroup v1。所以要在docker容器上跑，CPU和内存监控的逻辑需要修改。GPU监控部分可能可以直接用。而且软工项目为了方便，代码中我写了降级到宿主机，好像该仓库软工项目脚本运行结果中的CPU和内存是统计的宿主机整个的CPU和内存使用情况。该仓库脚本只是提供一个监控思路，实际用docker容器代码要改的其实还是挺多的。
