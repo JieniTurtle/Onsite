@@ -1530,7 +1530,7 @@ class Env_Manager:
                     img_filename = self.camera_path / cam_type / f'{frame_str}.jpg'
                     cv2.imwrite(str(img_filename), img)
                     
-        '''
+        
                 elif 'depth' in cam_type or 'instance' in cam_type or 'semantic' in cam_type:
                     # Save depth images as PNG
                     img_filename = self.camera_path / cam_type / f'{frame_str}.png'
@@ -1568,7 +1568,7 @@ class Env_Manager:
             las.y = lidar_data[:,1]
             las.z = lidar_data[:,2]
             las.write(str(lidar_filename))
-        '''
+        
         
         self.count += 1
 
